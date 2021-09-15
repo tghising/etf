@@ -72,14 +72,13 @@ def etf_get_holdings(fund, link):
     col_rename = {'Component Name':'Security Name',
                   'Weight':'Weight %',
                   'Market Value (Base CCY)':'Market Value',
-                  'Bloomberg Ticker':'Security Ticker'
-           
+                  # 'Bloomberg Ticker':'Security Ticker'
                  }
     base_url = 'https://www.etfsecurities.com.au'
     try:
         r = requests.get(link, timeout=t_out)           # pull the containing page
     except  Exception as e:
-        writelog(f'{fund}\tCould not get the containing page {file_url}: {e}')
+        writelog(f'{fund}\tCould not get the containing page {link}: {e}')
         return pd.DataFrame()
     soup = BeautifulSoup(r.content, 'lxml')     # parse
     tag = soup.find(href=re.compile('\.xlsx'))  # find the tag with the link
@@ -95,6 +94,11 @@ def etf_get_holdings(fund, link):
         return pd.DataFrame()
     df = pd.read_excel(r.content, skiprows=18)
     df = df.dropna(thresh=5)            # to drop the total row and others mostly null
+
+    # Splitting Bloomberg Ticker column into "Security Ticker", "Country Code" columns
+    if "Bloomberg Ticker" in df.columns:
+        df[['Security Ticker', 'Country Code', 'Security Type']] = df['Bloomberg Ticker'].str.split(' ', 0, expand=True)
+
     # if we find any source columns in the rename dict, rename them
     for col in col_rename:
         if col in list(df):
@@ -102,8 +106,8 @@ def etf_get_holdings(fund, link):
     
     if save_individual_files:
         save_file = f'{wkg_dir}\\{start.strftime("%Y%m%d")}_{fund}.xlsx'
-        df.to_excel(save_file, sheet_name=fund, index=False, freeze_panes=(1,0)) 
-    #df['Issuer'] = 'ETF Securities'
+        df.to_excel(save_file, sheet_name=fund, index=False, freeze_panes=(1,0))
+
     df['etf ticker'] = fund
     keep = keep_list(col_keep, list(df))
     return df[keep]
@@ -111,7 +115,7 @@ def etf_get_holdings(fund, link):
 
 
 # ---------- set up constants ---------- #
-wkg_dir = ''
+wkg_dir = 'ETF Securities'
 create_dir(wkg_dir)
 host = 'https://www3.vanguard.com.au'
 path = '/personal/products/funds.json'
@@ -126,10 +130,8 @@ lf = open(f'{log_dir}\\{logfile}', 'a')
 lf.write('\n'+'-'*75)
 # After renaming columns, keep only these ones in the final file
 # Note that this also determines the column order in the Excel file.
-col_keep = ['Issuer','etf ticker','Security Ticker','Security Name','Weight %','Market Value',
-            'Rate','Maturity date','Sector','Country']
+col_keep = ['Issuer','etf ticker','Security Ticker','Country Code','Security Name','Weight %','Market Value', 'Rate','Maturity date','Sector','Country']
 all_funds = pd.DataFrame()  # empty data frame to add to
-list_file = 'fund list test.xlsx'
 list_file = 'ETF Securities List.xlsx'
 total_file = f'{wkg_dir}\\ETF_Securities.xlsx'
 fund_list = pd.read_excel(list_file, engine="openpyxl", )
