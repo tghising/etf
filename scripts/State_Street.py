@@ -30,10 +30,6 @@ from datetime import datetime
 import os
 import requests
 import pandas as pd
-from bs4 import BeautifulSoup
-
-
-# In[2]:
 
 
 def create_dir(dirName):
