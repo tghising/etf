@@ -67,8 +67,8 @@ def ss_get_holdings(fund, link):
     """ State Street v2.0
     not using the link at all now, just the fund """
     col_rename = {'Name': 'Security Name',
-                  'Weight (%)': 'Weight %',
-                  'Ticker': 'Security Ticker'
+                  'Weight (%)': 'Weight %'
+                  # 'Ticker': 'Security Ticker'
                   }
     file_url = f'https://www.ssga.com/au/en_gb/individual/etfs/library-content/products/fund-data/etfs/apac/holdings-daily-au-en-{fund.lower()}.xlsx'
     try:
@@ -78,6 +78,10 @@ def ss_get_holdings(fund, link):
         return pd.DataFrame()
     df = pd.read_excel(r.content, skiprows=4)
     df = df.dropna(thresh=5)  # to drop the total row and others mostly null
+    # Splitting Bloomberg Ticker column into "Security Ticker", "Country Code" columns
+    if "Ticker" in df.columns:
+        df[['Security Ticker', 'Country Code']] = df['Ticker'].str.split('-', 0, expand=True)
+
     # if we find any source columns in the rename dict, rename them
     for col in col_rename:
         if col in list(df):
@@ -107,7 +111,7 @@ lf = open(f'{log_dir}\\{logfile}', 'a')
 lf.write('\n' + '-' * 75)
 # After renaming columns, keep only these ones in the final file
 # Note that this also determines the column order in the Excel file.
-col_keep = ['Issuer', 'etf ticker', 'Security Ticker', 'Security Name', 'Weight %', 'Market Value',
+col_keep = ['Issuer', 'etf ticker', 'Security Ticker', 'Country Code', 'Security Name', 'Weight %', 'Market Value',
             'Rate', 'Maturity date', 'Sector', 'Country', 'Number of Shares', 'Local Price']
 all_funds = pd.DataFrame()  # empty data frame to add to
 list_file = 'fund list test.xlsx'
