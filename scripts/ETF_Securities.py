@@ -27,8 +27,6 @@ Change Log
 """
 from datetime import datetime
 import re
-import json
-from io import StringIO
 import os
 import requests
 import pandas as pd
@@ -115,7 +113,7 @@ def etf_get_holdings(fund, link):
 
 
 # ---------- set up constants ---------- #
-wkg_dir = 'ETF Securities'
+wkg_dir = 'ETF Securities Py'
 create_dir(wkg_dir)
 host = 'https://www3.vanguard.com.au'
 path = '/personal/products/funds.json'
@@ -175,10 +173,3 @@ time_taken = end - start
 # writelog(f'Finished at {end.strftime("%H:%M:%S")}')
 m, s = divmod(time_taken.seconds,60)
 writelog(f'This took {m} minutes, {s} seconds for {len(fund_list)} funds')
-
-
-# In[ ]:
-
-
-
-
