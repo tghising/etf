@@ -111,8 +111,9 @@ def bs_get_holdings(fund, link):
     if "Ticker" in df.columns:
         is_contains_space = df['Ticker'].str.contains(" ").any()
         if is_contains_space:
-            df['Security Ticker'] = df['Ticker'].str.split(" ", expand=True)[0]
-            df['Country Code'] = df['Ticker'].str.split(" ", expand=True)[1]
+            ticker = df['Ticker'].str.split(" ", expand=True)
+            df['Security Ticker'] = ticker[0]
+            df['Country Code'] = ticker[1]
         else:
             df['Security Ticker'] = df['Ticker']
             df['Country Code'] = None
