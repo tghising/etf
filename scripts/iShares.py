@@ -107,11 +107,11 @@ def is_get_holdings(fund, link):
     df = pd.read_csv(StringIO(result.text), skiprows=first_skip_rows)
     # df = df.dropna(thresh=5)  # to drop the total row and others mostly null
 
-    ticker_list = df.index[df['Ticker'] == 'Ticker'].tolist()  # df.loc[df['Ticker'].isin(['Ticker'])]
-    # ticker_list = df.index[df.iloc[0] == 'Ticker'].tolist()
-    if ticker_list:
-        header_count = len(ticker_list)
-        index = ticker_list[header_count - 1]  # take Header from the last index
+    ticker_header_list = df.index[df['Ticker'] == 'Ticker'].tolist()  # df.loc[df['Ticker'].isin(['Ticker'])]
+    # ticker_header_list = df.index[df.iloc[0] == 'Ticker'].tolist()
+    if ticker_header_list:
+        header_count = len(ticker_header_list)
+        index = ticker_header_list[header_count - 1]  # take Header from the last index
         modified_skip_rows = first_skip_rows + index + header_count  # add the number of header count to new skip rows
         df = pd.read_csv(StringIO(result.text), skiprows=modified_skip_rows)
         df = df.dropna(thresh=5)  # to drop the total row and others mostly null
