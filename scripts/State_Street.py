@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
 
 """
 Read the ETF Fund List file and loop through the rows
@@ -30,7 +28,6 @@ from datetime import datetime
 import os
 import requests
 import pandas as pd
-
 
 # CONSTANTS Configurations
 INVESTMENT_PRODUCTS_LIST = 'State Street List.xlsx'
@@ -99,6 +96,7 @@ def ss_get_holdings(fund, link):
             df[['Security Ticker', 'Country Code']] = df['Ticker'].str.split('-', 0, expand=True)
         else:
             df['Security Ticker'] = df['Ticker']
+            df['Country Code'] = None
 
     # if we find any source columns in the rename dict, rename them
     for col in COLUMN_RE_MAPPING:
@@ -130,10 +128,7 @@ save_individual_files = False
 logfile = f'{start_day}_{os.path.basename(__file__).split(".")[0]}.log'
 lf = open(f'{LOGS_DIR}\\{logfile}', 'a')
 lf.write('\n' + '-' * 75 + '\n')
-# After renaming columns, keep only these ones in the final file
-# Note that this also determines the column order in the Excel file.
-col_keep = ['Issuer', 'etf ticker', 'Security Ticker', 'Country Code', 'Security Name', 'Weight %', 'Market Value',
-            'Rate', 'Maturity date', 'Sector', 'Country', 'Number of Shares', 'Local Price']
+
 all_funds = pd.DataFrame()  # empty output frame to add to
 
 fund_list = pd.read_excel(INVESTMENT_PRODUCTS_LIST, engine="openpyxl", )
