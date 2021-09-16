@@ -134,7 +134,7 @@ def is_get_holdings(fund, link):
 #      START SCRIPT FROM HERE
 # ============================
 print("======================================================================")
-print("                  BlackRock - iShares - Holdings EXTRACT: STARTED              ")
+print("           BlackRock - iShares - Holdings EXTRACT: STARTED            ")
 print("======================================================================")
 
 create_dir(OUTPUT_DIR)
