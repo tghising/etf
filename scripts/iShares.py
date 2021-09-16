@@ -56,7 +56,7 @@ def create_dir(dirName):
     """ Create if it doesn't exist """
     import os
     try:
-        os.mkdir(dirName)  # Create target Directory
+        os.makedirs(dirName)  # Create target Directory
     except FileExistsError:
         pass
 
