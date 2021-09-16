@@ -94,19 +94,32 @@ def is_get_holdings(fund, link):
 
     file_url = BASE_URL + tag['href']  # add the relative link
     try:
-        print(file_url)
         result = requests.get(file_url, timeout=TIME_OUT)  # get the file
     except  Exception as e:
         writelog(f'{fund}\tCould not get the spreadsheet {file_url}: {e}')
         return pd.DataFrame()
 
-    df = pd.read_csv(StringIO(result.text), skiprows=9)
-    df = df.dropna(thresh=5)  # to drop the total row and others mostly null
+    # set skiprows 9 for all the holding
+    first_skip_rows = 9
+    # variable for skiprows if there exists multiple Ticker columns in the holding
+    modified_skip_rows = 0
+
+    df = pd.read_csv(StringIO(result.text), skiprows=first_skip_rows)
+    # df = df.dropna(thresh=5)  # to drop the total row and others mostly null
+
+    ticker_list = df.index[df['Ticker'] == 'Ticker'].tolist()  # df.loc[df['Ticker'].isin(['Ticker'])]
+    # ticker_list = df.index[df.iloc[0] == 'Ticker'].tolist()
+    if ticker_list:
+        header_count = len(ticker_list)
+        index = ticker_list[header_count - 1]  # take Header from the last index
+        modified_skip_rows = first_skip_rows + index + header_count  # add the number of header count to new skip rows
+        df = pd.read_csv(StringIO(result.text), skiprows=modified_skip_rows)
+        df = df.dropna(thresh=5)  # to drop the total row and others mostly null
 
     # if we find any source columns in the rename dict, rename them
-    for col in OUTPUT_DIR:
+    for col in COLUMN_RE_MAPPING:
         if col in list(df):
-            df.rename(columns={col: OUTPUT_DIR[col]}, inplace=True)
+            df.rename(columns={col: COLUMN_RE_MAPPING[col]}, inplace=True)
 
     if save_individual_files:
         save_file = f'{OUTPUT_DIR}\\{start.strftime("%Y%m%d")}_{fund}.xlsx'
@@ -115,7 +128,6 @@ def is_get_holdings(fund, link):
     df['etf ticker'] = fund
     keep = keep_list(COLUMN_TO_DISPLAY, list(df))
     return df[keep]
-
 
 
 # ============================
@@ -185,4 +197,3 @@ writelog(f'This took {m} minutes, {s} seconds for {len(fund_list)} funds')
 print("\n***********************************************************************")
 print("                  BlackRock - iShares - Holdings EXTRACT : COMPLETED          ")
 print("***********************************************************************")
-
