@@ -195,5 +195,5 @@ m, s = divmod(time_taken.seconds, 60)
 writelog(f'This took {m} minutes, {s} seconds for {len(fund_list)} funds')
 
 print("\n***********************************************************************")
-print("                  BlackRock - iShares - Holdings EXTRACT : COMPLETED          ")
+print("                  BlackRock - iShares - Holdings EXTRACT : COMPLETED     ")
 print("***********************************************************************")
