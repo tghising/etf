@@ -181,7 +181,7 @@ for i in range(len(fund_list)):
         writelog(f'{fund}\t{issuer}\tSKIPPING, not a valid link')
 
 # Saving all at the end - riskier
-all_funds.to_excel(OUTPUT_I_SHARES_FILE, sheet_name='ETF', index=False, freeze_panes=(1, 0))
+all_funds.to_excel(OUTPUT_I_SHARES_FILE, sheet_name='BlackRock_iShares', index=False, freeze_panes=(1, 0))
 print('\n')
 writelog(f'Saved the combined file {OUTPUT_I_SHARES_FILE} size {all_funds.shape}')
 
