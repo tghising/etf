@@ -30,7 +30,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 
 # CONSTANTS Configurations
-INVESTMENT_PRODUCTS_LIST = 'Russell-Investments List.xlsx'
+INVESTMENT_PRODUCTS_LIST = 'Russell List.xlsx'
 BASE_URL = 'https://russellinvestments.com/'
 OUTPUT_DIR = r'Russell-Investments'
 LOGS_DIR = r'Russell-Investments'
