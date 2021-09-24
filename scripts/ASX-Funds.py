@@ -23,7 +23,7 @@ FILTER_YEAR = ['ALL']
 TIME_OUT = 30  # timeout for all web requests, else may hang
 
 OUTPUT_FUNDS_FILE = f'{OUTPUT_DIR}\\ASX Investment Products'
-
+SAVE_INDIVIDUAL_FILE = False
 
 def create_dir(dirName):
     try:
@@ -156,9 +156,12 @@ if __name__ == "__main__":
                     monthly_data['Sheet'] = sheet_name  # add "Sheet" in funds list
                     monthly_data['All Sheets'] = response_data['SheetNames']  # add "All Sheets" in funds list
                     each_df = response_data['data']  # take df from "data"
-                    each_df.to_excel(OUTPUT_DIR + "\\" + desc + ".xlsx", sheet_name='ASX', index=False,
-                                     freeze_panes=(1, 0))  # write monthly funds
+
                     all_funds_df = all_funds_df.append(each_df)
+                    
+                    if SAVE_INDIVIDUAL_FILE:
+                        save_file = f'{OUTPUT_DIR}\\{start.strftime("%Y-%m-%d")}_{desc}.xlsx'
+                        each_df.to_excel(save_file, sheet_name=sheet_name, index=False, freeze_panes=(1, 0))
 
         # Creating template dataframe
         template_df = pd.DataFrame(filtered_fund_list)
