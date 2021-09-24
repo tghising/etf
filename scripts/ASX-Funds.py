@@ -120,7 +120,7 @@ if __name__ == "__main__":
     create_dir(OUTPUT_DIR)
     create_dir(LOGS_DIR)
     start = datetime.now()
-    start_day = start.strftime("%Y%m%d")
+    start_day = start.strftime("%Y-%m-%d")
 
     logfile = f'{start_day}_{os.path.basename(__file__).split(".")[0]}.log'
     lf = open(f'{LOGS_DIR}\\{logfile}', 'a')
@@ -149,13 +149,13 @@ if __name__ == "__main__":
     else:
         for monthly_data in filtered_fund_list:
             if monthly_data:
+                desc = monthly_data['Description']
+                generate_log(f'{desc})\tStarting .........')
                 response_data = get_monthly_products(monthly_data)
                 if response_data:
-                    desc = monthly_data['Description']
                     exchange = monthly_data['Exchange']
                     period = monthly_data['Period']
                     sheet_name = response_data['Sheet']
-                    generate_log(f'{desc}\t Sheet({sheet_name})\tStarting .........')
                     monthly_data['Sheet'] = sheet_name  # add "Sheet" in funds list
                     monthly_data['All Sheets'] = response_data['SheetNames']  # add "All Sheets" in funds list
                     each_df = response_data['data']  # take df from "data"
@@ -166,17 +166,26 @@ if __name__ == "__main__":
                         save_file = f'{OUTPUT_DIR}\\{start.strftime("%Y-%m-%d")}_{desc}.xlsx'
                         each_df.to_excel(save_file, sheet_name=sheet_name, index=False, freeze_panes=(1, 0))
 
+                    generate_log(f'{desc}\t Sheet({sheet_name})\t\t : completed.')
+
         # Creating template dataframe
         template_df = pd.DataFrame(filtered_fund_list)
         # Saving all newly updated df into excel
         template_df.to_excel(INPUT_TEMPLATE_DIR, sheet_name='ASX', index=False, freeze_panes=(1, 0))
 
         if not all_funds_df.empty:
-            all_funds_df.to_excel(OUTPUT_FUNDS_FILE + ".xlsx", sheet_name='ASX', index=False, freeze_panes=(1, 0))
+            # save into .xlsx format
+            save_file = OUTPUT_FUNDS_FILE + ".xlsx"
+            all_funds_df.to_excel(save_file, sheet_name='ASX', index=False, freeze_panes=(1, 0))
+            file_bytes_size = os.path.getsize(save_file)
             print('\n')
-            generate_log(f'Saved the combined file {OUTPUT_FUNDS_FILE + ".xlsx"} size {all_funds_df.shape}')
-            all_funds_df.to_csv(OUTPUT_FUNDS_FILE + ".csv", index=False)
-            generate_log(f'Saved the combined file {OUTPUT_FUNDS_FILE + ".csv"} size {all_funds_df.shape}')
+            generate_log(f'Saved the combined file {OUTPUT_FUNDS_FILE + ".xlsx"} size {round(file_bytes_size/(1024), 0)} KB')
+
+            # save into .csv format
+            save_file = OUTPUT_FUNDS_FILE + ".csv"
+            all_funds_df.to_csv(save_file, index=False)
+            file_bytes_size = os.path.getsize(save_file)
+            generate_log(f'Saved the combined file {OUTPUT_FUNDS_FILE + ".csv"} size {round(file_bytes_size/(1024), 0)} KB')
 
 end = datetime.now()
 time_taken = end - start
