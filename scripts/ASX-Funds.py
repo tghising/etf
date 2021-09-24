@@ -91,17 +91,23 @@ def get_monthly_products(monthly_data):
     sheet_df['Sheet'] = acquired_sheet
     sheet_df['SheetNames'] = sheets
 
-    df = pd.read_excel(res.content, sheet_name=acquired_sheet)
+    df = pd.read_excel(res.content, sheet_name=acquired_sheet)  # read excel data of given sheet "acquired_sheet" which contains etp
     df = df.dropna(thresh=5)  # to drop the total row and others mostly null
     df.dropna(how='all', axis=1, inplace=True)
     df.columns = df.iloc[0]  # set first row as column
     df.columns = df.columns.str.replace('\n', '')  # replace newline '\n' with "" from the column name
+    asx_code_header_list = df.index[df.columns[0] == 'ASX Code'].tolist()  # Check first column contains "ASX Code or Not
+
+    if not asx_code_header_list:
+        df.columns = df.iloc[0]  # again set first row(second row of the given df) as column
+        df.columns = df.columns.str.replace('\n', '')  # replace newline '\n' with "" from the column name
+
     df = df[1:]
-    df['Period'] = period
+    df = df.loc[:, df.columns.notnull()]  # refine all not nol columns data only
+    df['Period'] = period  # add "Period" column
 
     sheet_df['data'] = df
     return sheet_df
-
 
 # ============================
 # MAIN PROGRAM : START SCRIPT
@@ -121,52 +127,50 @@ if __name__ == "__main__":
     lf.write("\n\t\t==========================================================================================\n")
     lf.write("\t\t\t\tFILTER YEARs(FILTER_YEAR) : " + str(FILTER_YEAR) + "\n")
 
-    all_funds = pd.DataFrame()  # empty data frame to add to
+    all_funds_df = pd.DataFrame()  # empty data frame to add to
 
-    # fund_list = pd.read_excel(INVESTMENT_PRODUCTS_LIST, engine="openpyxl", )
-    # fund_list.fillna('', inplace=True)  # convert NA to empty string (from float)
-
-    # ---------- Main Loop ---------- #
+    # get all funds lists from the FUND_LIST_URL url
     fund_list = get_all_fund_list(FUND_LIST_URL)
-
     filtered_fund_list = []
+
+    # filter the fund list based on user FILTER_YEAR years configuration
     if FILTER_YEAR[0].lower() == "all":
         filtered_fund_list = fund_list
     else:
-        filtered_fund_list = [item for item in fund_list if
-                              item.pop('Year') in FILTER_YEAR]  # filtered only for given year data FILTER_YEAR
+        # remove "Year" from the fund list because it is not needed further
+        filtered_fund_list = [item for item in fund_list if item.pop('Year') in FILTER_YEAR]  # filtered only for given year data FILTER_YEAR
 
+    # Display not valid FILTER YEAR configuration if there is no filtered list of funds.
     if not filtered_fund_list:
-        print("Your FILTER_YEAR : " + str(FILTER_YEAR) + " is not valid.\nPlease re-configure FILTER_YEAR.")
+        generate_log(f'Your FILTER_YEAR : {FILTER_YEAR} is not valid. Please re-configure FILTER_YEAR.')
+    else:
+        for monthly_data in filtered_fund_list:
+            if monthly_data:
+                response_data = get_monthly_products(monthly_data)
+                if response_data:
+                    desc = monthly_data['Description']
+                    exchange = monthly_data['Exchange']
+                    period = monthly_data['Period']
+                    sheet_name = response_data['Sheet']
+                    generate_log(f'{desc}\t Sheet({sheet_name})\tStarting .........')
+                    monthly_data['Sheet'] = sheet_name  # add "Sheet" in funds list
+                    monthly_data['All Sheets'] = response_data['SheetNames']  # add "All Sheets" in funds list
+                    each_df = response_data['data']  # take df from "data"
+                    each_df.to_excel(OUTPUT_DIR + "\\" + desc + ".xlsx", sheet_name='ASX', index=False,
+                                     freeze_panes=(1, 0))  # write monthly funds
+                    all_funds_df = all_funds_df.append(each_df)
 
-    all_funds_df = pd.DataFrame()
-    for monthly_data in filtered_fund_list:
-        if monthly_data:
-            response_data = get_monthly_products(monthly_data)
-            if response_data:
-                desc = monthly_data['Description']
-                exchange = monthly_data['Exchange']
-                period = monthly_data['Period']
-                sheet_name = response_data['Sheet']
-                generate_log(f'{exchange}\t{period}\t Sheet Name ({sheet_name})\tStarting .........')
-                monthly_data['Sheet'] = sheet_name  # add "Sheet" in funds list
-                monthly_data['All Sheets'] = response_data['SheetNames']  # add "All Sheets" in funds list
-                each_df = response_data['data']  # take df from "data"
-                each_df.to_excel(OUTPUT_DIR + "\\" + desc + ".xlsx", sheet_name='ASX', index=False,
-                                 freeze_panes=(1, 0))  # write monthly funds
-                all_funds_df = all_funds_df.append(each_df)
+        # Creating template dataframe
+        template_df = pd.DataFrame(filtered_fund_list)
+        # Saving all newly updated df into excel
+        template_df.to_excel(INPUT_TEMPLATE_DIR, sheet_name='ASX', index=False, freeze_panes=(1, 0))
 
-    # Creating template dataframe
-    template_df = pd.DataFrame(filtered_fund_list)
-    # Saving all newly updated df into excel
-    template_df.to_excel(INPUT_TEMPLATE_DIR, sheet_name='ASX', index=False, freeze_panes=(1, 0))
-
-    if not all_funds_df.empty:
-        all_funds_df.to_excel(OUTPUT_FUNDS_FILE + ".xlsx", sheet_name='ASX', index=False, freeze_panes=(1, 0))
-        print('\n')
-        generate_log(f'Saved the combined file {OUTPUT_FUNDS_FILE + ".xlsx"} size {all_funds_df.shape}')
-        all_funds_df.to_csv(OUTPUT_FUNDS_FILE + ".csv", index=False)
-        generate_log(f'Saved the combined file {OUTPUT_FUNDS_FILE + ".csv"} size {all_funds_df.shape}')
+        if not all_funds_df.empty:
+            all_funds_df.to_excel(OUTPUT_FUNDS_FILE + ".xlsx", sheet_name='ASX', index=False, freeze_panes=(1, 0))
+            print('\n')
+            generate_log(f'Saved the combined file {OUTPUT_FUNDS_FILE + ".xlsx"} size {all_funds_df.shape}')
+            all_funds_df.to_csv(OUTPUT_FUNDS_FILE + ".csv", index=False)
+            generate_log(f'Saved the combined file {OUTPUT_FUNDS_FILE + ".csv"} size {all_funds_df.shape}')
 
 end = datetime.now()
 time_taken = end - start
