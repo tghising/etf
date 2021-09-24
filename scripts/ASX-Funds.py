@@ -18,7 +18,7 @@ LOGS_DIR = r'D:\Internship\etf\logs\asx'
 FILTER_YEAR = ['ALL']
 # FILTER_YEAR = ['2021', '2020','2019']
 # FILTER_YEAR = ['2021','2019']
-# FILTER_YEAR = ['2021']
+FILTER_YEAR = ['2021']
 
 TIME_OUT = 30  # timeout for all web requests, else may hang
 
@@ -34,6 +34,11 @@ def create_dir(dirName):
 
 def generate_log(msg):
     lf.write(f'{datetime.now().strftime("%H:%M:%S")}\t{msg}\n')
+    print(msg)
+    return
+
+def welcome_log(msg):
+    lf.write(f'\t{msg}\n')
     print(msg)
     return
 
@@ -122,13 +127,12 @@ if __name__ == "__main__":
     start = datetime.now()
     start_day = start.strftime("%Y-%m-%d")
 
-    logfile = f'{start_day}_{os.path.basename(__file__).split(".")[0]}.log'
+    logfile = f'{start_day}_ASX-FUNDS.log'
     lf = open(f'{LOGS_DIR}\\{logfile}', 'a')
-
-    lf.write('\n\t\t==========================================================================================')
-    lf.write("\n\t\t\t\t\tASX FUNDS : STARTED")
-    lf.write("\n\t\t==========================================================================================\n")
-    lf.write("\t\t\t\tFILTER YEARs(FILTER_YEAR) : " + str(FILTER_YEAR) + "\n")
+    welcome_log(f'\t\t==================================================================================')
+    welcome_log(f'\t\t\t\t\t\t\t\t\tASX FUNDS : STARTED')
+    welcome_log(f'\t\t==================================================================================')
+    welcome_log(f'\t\t\t\t\t\tFILTER YEARs(FILTER_YEAR) : {FILTER_YEAR}')
 
     all_funds_df = pd.DataFrame()  # empty data frame to add to
 
@@ -178,7 +182,7 @@ if __name__ == "__main__":
             save_file = OUTPUT_FUNDS_FILE + ".xlsx"
             all_funds_df.to_excel(save_file, sheet_name='ASX', index=False, freeze_panes=(1, 0))
             file_bytes_size = os.path.getsize(save_file)
-            print('\n')
+            generate_log(f'')
             generate_log(f'Saved the combined file {OUTPUT_FUNDS_FILE + ".xlsx"} size {round(file_bytes_size/(1024), 0)} KB')
 
             # save into .csv format
