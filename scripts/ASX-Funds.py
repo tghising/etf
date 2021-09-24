@@ -94,16 +94,19 @@ def get_monthly_products(monthly_data):
     df = pd.read_excel(res.content, sheet_name=acquired_sheet)  # read excel data of given sheet "acquired_sheet" which contains etp
     df = df.dropna(thresh=5)  # to drop the total row and others mostly null
     df.dropna(how='all', axis=1, inplace=True)
-    df.columns = df.iloc[0]  # set first row as column
+    df.columns = df.iloc[0]  # set row index 0 as column
     df.columns = df.columns.str.replace('\n', '')  # replace newline '\n' with "" from the column name
+
     asx_code_header_list = df.index[df.columns[0] == 'ASX Code'].tolist()  # Check first column contains "ASX Code or Not
-
     if not asx_code_header_list:
-        df.columns = df.iloc[0]  # again set first row(second row of the given df) as column
+        df.columns = df.iloc[1]  # # column take from row index 1
         df.columns = df.columns.str.replace('\n', '')  # replace newline '\n' with "" from the column name
+        df = df[2:] # data take from row index 2
+    else:
+        df = df[1:] # data take from row index 1
 
-    df = df[1:]
-    df = df.loc[:, df.columns.notnull()]  # refine all not nol columns data only
+    # remove nan columns from the df column
+    df = df[df.columns.dropna()]    # df = df.loc[:, df.columns.notnull()]
     df['Period'] = period  # add "Period" column
 
     sheet_df['data'] = df
