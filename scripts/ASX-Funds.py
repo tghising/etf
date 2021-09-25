@@ -154,7 +154,7 @@ if __name__ == "__main__":
         for monthly_data in filtered_fund_list:
             if monthly_data:
                 desc = monthly_data['Description']
-                generate_log(f'{desc})\tStarting .........')
+                generate_log(f'{desc}\tStarting .........')
                 response_data = get_monthly_products(monthly_data)
                 if response_data:
                     exchange = monthly_data['Exchange']
