@@ -18,7 +18,7 @@ LOGS_DIR = r'D:\Internship\etf\logs\asx'
 FILTER_YEAR = ['ALL']
 # FILTER_YEAR = ['2021', '2020','2019']
 # FILTER_YEAR = ['2021','2019']
-FILTER_YEAR = ['2021']
+# FILTER_YEAR = ['2021']
 
 TIME_OUT = 30  # timeout for all web requests, else may hang
 
